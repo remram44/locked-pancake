@@ -150,7 +150,7 @@ impl VirtualMachine {
         &mut self,
         thread: &mut Thread,
         mut count: Option<usize>,
-    ) -> Result<bool, ExecError> {
+    ) -> Result<Option<Value>, ExecError> {
         while count.unwrap_or(1) > 0 {
             let Thread { code, instr, stack } = thread;
             let code_: &Code = code;
@@ -416,7 +416,7 @@ impl VirtualMachine {
             }
         }
 
-        Ok(false)
+        Ok(None)
     }
 }
 
