@@ -64,6 +64,10 @@ pub struct Code {
     codes: Vec<Code>,
 }
 
+pub struct Function {
+    code: Rc<Code>,
+}
+
 pub fn compile_text<R: Read>(file: R) -> Result<Code, CompileError> {
     // TODO: Compile text into bytecode
     Ok(Code {
@@ -120,10 +124,6 @@ pub enum Value {
     Userdata(usize),
 }
 
-struct Function {
-    code: Rc<Code>,
-}
-
 pub struct VirtualMachine {
     globals: HashMap<String, Value>,
 }
@@ -174,10 +174,64 @@ impl VirtualMachine {
                 }
             };
 
-            // TODO: Execute instructions
+            // Execute instructions
             match opcode {
-                Instruction::Return => {}
-                Instruction::Call => {}
+                Instruction::Return => match (stack.pop(), stack.pop()) {
+                    (Some(Value::Integer(i)), Some(Value::Code(c)))
+                        if i >= 0 =>
+                    {
+                        *instr = i as usize;
+                        *code = c;
+                    }
+                    (Some(_), Some(_)) => {
+                        return Err(ExecError::InvalidInstruction);
+                    }
+                    _ => {
+                        return Err(ExecError::StackEmpty);
+                    }
+                },
+                Instruction::Call => {
+                    // Function call needs the function and the arguments to be
+                    // on the stack, and pushes the current instruction counter
+                    // and code object before switching to the new code
+
+                    // Read operand: number of arguments on stack
+                    let nb_args = instrs[*instr] as usize;
+                    *instr += 1;
+
+                    // Check stack
+                    if stack.len() < nb_args + 1 {
+                        return Err(ExecError::StackEmpty);
+                    }
+
+                    // Get the function object
+                    let func = match &stack[stack.len() - 1 - nb_args] {
+                        Value::Function(f) => f.clone(),
+                        _ => return Err(ExecError::InvalidInstruction),
+                    };
+                    let func_code: &Code = &func.code;
+
+                    if func_code.params > nb_args {
+                        // Set missing arguments to nil
+                        stack.reserve(func_code.params - nb_args);
+                        for _ in nb_args..func_code.params {
+                            stack.push(Value::Nil);
+                        }
+                    } else if func_code.params < nb_args {
+                        // Remove extra arguments
+                        stack.truncate(
+                            stack.len() + func_code.params - nb_args,
+                        );
+                    }
+
+                    // Push the previous instruction counter and code object
+                    stack.push(Value::Integer(*instr as i32));
+                    stack.push(Value::Code(code.clone()));
+
+                    // Switch to the new code
+                    *instr = 0;
+                    *code = func.code.clone();
+                }
                 Instruction::LoadConstant => {}
                 Instruction::LoadCode => {}
                 Instruction::MakeFunction => {}
