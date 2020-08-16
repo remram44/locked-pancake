@@ -115,6 +115,7 @@ pub fn compile_text<R: Read>(file: R) -> Result<Code, CompileError> {
     })
 }
 
+#[derive(Clone)]
 pub enum Value {
     String(Rc<String>),
     Integer(i32),
@@ -232,7 +233,21 @@ impl VirtualMachine {
                     *instr = 0;
                     *code = func.code.clone();
                 }
-                Instruction::LoadConstant => {}
+                Instruction::LoadConstant => {
+                    // Read operand: constant number
+                    let constant_idx = instrs[*instr] as usize;
+                    *instr += 1;
+
+                    // Get constant value
+                    let value = if constant_idx < code.constants.len() {
+                        code.constants[constant_idx].clone()
+                    } else {
+                        return Err(ExecError::InvalidInstruction);
+                    };
+
+                    // Put it on the stack
+                    stack.push(value);
+                }
                 Instruction::LoadCode => {}
                 Instruction::MakeFunction => {}
                 Instruction::LoadGlobal => {}
