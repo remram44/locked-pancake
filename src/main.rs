@@ -302,7 +302,31 @@ impl VirtualMachine {
                     });
                     stack.push(Value::Function(func));
                 }
-                Instruction::LoadGlobal => {}
+                Instruction::LoadGlobal => {
+                    // Read operand: index of constant giving the name
+                    let idx = instrs[*instr] as usize;
+                    *instr += 1;
+
+                    // Get constant value
+                    let name = if idx < code.constants.len() {
+                        &code.constants[idx]
+                    } else {
+                        return Err(ExecError::InvalidInstruction);
+                    };
+
+                    // Get string
+                    let name: &str = match name {
+                        Value::String(n) => &*n,
+                        _ => return Err(ExecError::InvalidInstruction),
+                    };
+
+                    // Get that global, put it on the stack
+                    let value = match self.globals.get(name) {
+                        Some(v) => v.clone(),
+                        None => Value::Nil,
+                    };
+                    stack.push(value);
+                }
                 Instruction::SetGlobal => {}
                 Instruction::GetAttr => {}
                 Instruction::SetAttr => {}
