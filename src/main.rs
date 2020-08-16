@@ -189,6 +189,7 @@ impl VirtualMachine {
                     (Some(_), Some(_)) => {
                         return Err(ExecError::InvalidInstruction);
                     }
+                    (None, None) => return Ok(true),
                     _ => {
                         return Err(ExecError::StackEmpty);
                     }
