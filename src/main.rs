@@ -305,7 +305,19 @@ impl VirtualMachine {
                 Instruction::SetGlobal => {}
                 Instruction::GetAttr => {}
                 Instruction::SetAttr => {}
-                Instruction::Pop => {}
+                Instruction::Pop => {
+                    // Read operand: number of values to pop from stack
+                    let nb = instrs[*instr] as usize;
+                    *instr += 1;
+
+                    // Check stack
+                    if stack.len() < nb {
+                        return Err(ExecError::StackEmpty);
+                    }
+
+                    // Pop
+                    stack.truncate(stack.len() - nb);
+                }
             }
 
             match count {
