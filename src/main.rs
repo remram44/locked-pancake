@@ -327,7 +327,33 @@ impl VirtualMachine {
                     };
                     stack.push(value);
                 }
-                Instruction::SetGlobal => {}
+                Instruction::SetGlobal => {
+                    // Read operand: index of constant giving the name
+                    let idx = instrs[*instr] as usize;
+                    *instr += 1;
+
+                    // Get constant value
+                    let name = if idx < code.constants.len() {
+                        &code.constants[idx]
+                    } else {
+                        return Err(ExecError::InvalidInstruction);
+                    };
+
+                    // Get string
+                    let name: &str = match name {
+                        Value::String(n) => &*n,
+                        _ => return Err(ExecError::InvalidInstruction),
+                    };
+
+                    // Get object from stack
+                    let value = match stack.pop() {
+                        Some(v) => v,
+                        None => return Err(ExecError::StackEmpty),
+                    };
+
+                    // Set the global
+                    self.globals.insert(name.to_owned(), value);
+                }
                 Instruction::GetAttr => {}
                 Instruction::SetAttr => {}
                 Instruction::Push => {
