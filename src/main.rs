@@ -61,7 +61,7 @@ pub struct Code {
     params: usize,
     constants: Vec<Value>,
     instrs: Vec<u8>,
-    codes: Vec<Code>,
+    codes: Vec<Rc<Code>>,
 }
 
 pub struct Function {
@@ -83,7 +83,7 @@ pub fn compile_text<R: Read>(file: R) -> Result<Code, CompileError> {
             // Stack: <func main>
             Instruction::SetGlobal as u8, 0, // const 0 = "main"
         ],
-        codes: vec![Code {
+        codes: vec![Rc::new(Code {
             upvalues: 0,
             params: 0,
             constants: vec![
@@ -111,7 +111,7 @@ pub fn compile_text<R: Read>(file: R) -> Result<Code, CompileError> {
                 2,
             ],
             codes: vec![],
-        }],
+        })],
     })
 }
 
@@ -248,13 +248,32 @@ impl VirtualMachine {
                     // Put it on the stack
                     stack.push(value);
                 }
-                Instruction::LoadCode => {}
+                Instruction::LoadCode => {
+                    // Read operand: code number
+                    let code_idx = instrs[*instr] as usize;
+                    *instr += 1;
+
+                    // Get code
+                    let code_obj = if code_idx < code.codes.len() {
+                        code.codes[code_idx].clone()
+                    } else {
+                        return Err(ExecError::InvalidInstruction);
+                    };
+
+                    // Put it on the stack
+                    stack.push(Value::Code(code_obj));
+                }
                 Instruction::MakeFunction => {}
                 Instruction::LoadGlobal => {}
                 Instruction::SetGlobal => {}
                 Instruction::GetAttr => {}
                 Instruction::SetAttr => {}
                 Instruction::Pop => {}
+            }
+
+            match count {
+                Some(ref mut c) => *c -= 1,
+                None => {}
             }
         }
 
