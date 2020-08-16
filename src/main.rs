@@ -66,6 +66,7 @@ pub struct Code {
 
 pub struct Function {
     code: Rc<Code>,
+    upvalues: Vec<Value>,
 }
 
 pub fn compile_text<R: Read>(file: R) -> Result<Code, CompileError> {
@@ -225,6 +226,11 @@ impl VirtualMachine {
                         );
                     }
 
+                    if func_code.upvalues > 0 {
+                        // TODO: Deal with upvalues somehow
+                        return Err(ExecError::InvalidInstruction);
+                    }
+
                     // Push the previous instruction counter and code object
                     stack.push(Value::Integer(*instr as i32));
                     stack.push(Value::Code(code.clone()));
@@ -263,7 +269,38 @@ impl VirtualMachine {
                     // Put it on the stack
                     stack.push(Value::Code(code_obj));
                 }
-                Instruction::MakeFunction => {}
+                Instruction::MakeFunction => {
+                    // Read operand: number of upvalues
+                    let nb_upvalues = instrs[*instr] as usize;
+                    *instr += 1;
+
+                    if nb_upvalues > 0 {
+                        // TODO: Implement upvalues
+                        return Err(ExecError::InvalidInstruction);
+                    }
+
+                    // Check stack
+                    if stack.len() < nb_upvalues + 1 {
+                        return Err(ExecError::StackEmpty);
+                    }
+
+                    // Get the upvalues
+                    let func_upvalues =
+                        stack.split_off(stack.len() - nb_upvalues);
+
+                    // Get the code object
+                    let code_obj = match stack.pop() {
+                        Some(Value::Code(c)) => c,
+                        _ => return Err(ExecError::InvalidInstruction),
+                    };
+
+                    // Make the function object on the stack
+                    let func = Rc::new(Function {
+                        code: code_obj,
+                        upvalues: func_upvalues,
+                    });
+                    stack.push(Value::Function(func));
+                }
                 Instruction::LoadGlobal => {}
                 Instruction::SetGlobal => {}
                 Instruction::GetAttr => {}
