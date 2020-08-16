@@ -53,6 +53,7 @@ pub enum Instruction {
     SetGlobal,
     GetAttr,
     SetAttr,
+    Push,
     Pop,
 }
 
@@ -305,6 +306,19 @@ impl VirtualMachine {
                 Instruction::SetGlobal => {}
                 Instruction::GetAttr => {}
                 Instruction::SetAttr => {}
+                Instruction::Push => {
+                    // Read operand: index of value to duplicate
+                    let idx = instrs[*instr] as usize;
+                    *instr += 1;
+
+                    // Check stack
+                    if stack.len() < idx + 1 {
+                        return Err(ExecError::StackEmpty);
+                    }
+
+                    // Push
+                    stack.push(stack[stack.len() - 1 - idx].clone());
+                }
                 Instruction::Pop => {
                     // Read operand: number of values to pop from stack
                     let nb = instrs[*instr] as usize;
