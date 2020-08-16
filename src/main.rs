@@ -42,7 +42,7 @@ impl fmt::Display for ExecError {
 
 impl Error for ExecError {}
 
-#[derive(FromPrimitive)]
+#[derive(Debug, FromPrimitive)]
 pub enum Instruction {
     Return,
     Call,
@@ -178,6 +178,7 @@ impl VirtualMachine {
             };
 
             // Execute instructions
+            eprintln!("instruction {:?}", opcode);
             match opcode {
                 Instruction::Return => match (stack.pop(), stack.pop()) {
                     (Some(Value::Integer(i)), Some(Value::Code(c)))
@@ -373,8 +374,8 @@ impl VirtualMachine {
                     // Set the global
                     self.globals.insert(name.to_owned(), value);
                 }
-                Instruction::GetAttr => {}
-                Instruction::SetAttr => {}
+                Instruction::GetAttr => unimplemented!(),
+                Instruction::SetAttr => unimplemented!(),
                 Instruction::Push => {
                     // Read operand: index of value to duplicate
                     if *instr >= instrs.len() {
