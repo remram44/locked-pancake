@@ -199,6 +199,9 @@ impl VirtualMachine {
                     // and code object before switching to the new code
 
                     // Read operand: number of arguments on stack
+                    if *instr >= instrs.len() {
+                        return Err(ExecError::InvalidInstruction);
+                    }
                     let nb_args = instrs[*instr] as usize;
                     *instr += 1;
 
@@ -242,6 +245,9 @@ impl VirtualMachine {
                 }
                 Instruction::LoadConstant => {
                     // Read operand: constant number
+                    if *instr >= instrs.len() {
+                        return Err(ExecError::InvalidInstruction);
+                    }
                     let constant_idx = instrs[*instr] as usize;
                     *instr += 1;
 
@@ -257,6 +263,9 @@ impl VirtualMachine {
                 }
                 Instruction::LoadCode => {
                     // Read operand: code number
+                    if *instr >= instrs.len() {
+                        return Err(ExecError::InvalidInstruction);
+                    }
                     let code_idx = instrs[*instr] as usize;
                     *instr += 1;
 
@@ -272,6 +281,9 @@ impl VirtualMachine {
                 }
                 Instruction::MakeFunction => {
                     // Read operand: number of upvalues
+                    if *instr >= instrs.len() {
+                        return Err(ExecError::InvalidInstruction);
+                    }
                     let nb_upvalues = instrs[*instr] as usize;
                     *instr += 1;
 
@@ -304,6 +316,9 @@ impl VirtualMachine {
                 }
                 Instruction::LoadGlobal => {
                     // Read operand: index of constant giving the name
+                    if *instr >= instrs.len() {
+                        return Err(ExecError::InvalidInstruction);
+                    }
                     let idx = instrs[*instr] as usize;
                     *instr += 1;
 
@@ -329,6 +344,9 @@ impl VirtualMachine {
                 }
                 Instruction::SetGlobal => {
                     // Read operand: index of constant giving the name
+                    if *instr >= instrs.len() {
+                        return Err(ExecError::InvalidInstruction);
+                    }
                     let idx = instrs[*instr] as usize;
                     *instr += 1;
 
@@ -358,6 +376,9 @@ impl VirtualMachine {
                 Instruction::SetAttr => {}
                 Instruction::Push => {
                     // Read operand: index of value to duplicate
+                    if *instr >= instrs.len() {
+                        return Err(ExecError::InvalidInstruction);
+                    }
                     let idx = instrs[*instr] as usize;
                     *instr += 1;
 
@@ -371,6 +392,9 @@ impl VirtualMachine {
                 }
                 Instruction::Pop => {
                     // Read operand: number of values to pop from stack
+                    if *instr >= instrs.len() {
+                        return Err(ExecError::InvalidInstruction);
+                    }
                     let nb = instrs[*instr] as usize;
                     *instr += 1;
 
