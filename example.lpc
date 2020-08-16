@@ -1,0 +1,60 @@
+# High-level language
+
+class Parent {
+    fn init(self, n) {
+        self.number = f
+    }
+}
+
+class Child extends Parent {
+    fn init(self, n) {
+        super(n)
+    }
+
+    fn greet(self, name) {
+        print("Hello {name} number is {number}".format(name, self.number))
+    }
+}
+
+fn main() {
+    c = Child(4)
+    c.greet()
+}
+
+print("Loaded")
+
+
+# Bytecode for main
+
+# 0 upvalues, 0 params, 3 constant
+.function 0 0 3
+.const "main"
+# Constants
+.const 4
+.const "Child'
+.const "greet"
+# Code
+LoadGlobal 1
+LoadConstant 0
+# Stack: <Child> 4
+Call 1
+# Stack: c
+LoadConstant 2
+GetAttr
+# Stack: c <c.greet>
+Call 0
+# Stack: c nil
+Pop 2
+
+# Bytecode for main instanciation
+
+# 0 upvalues, 0 params, 1 constants
+.function 0 0 1
+.const ""
+# Constants
+.const "main"
+# Code
+LoadCode 0
+MakeFunction 0
+# Stack: <main>
+SetGlobal 0
