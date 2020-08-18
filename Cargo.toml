@@ -1,3 +1,6 @@
+[workspace]
+members = ["gc"]
+
 [package]
 name = "lpc"
 version = "0.1.0"
